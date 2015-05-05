@@ -134,73 +134,54 @@ class Form
     }
 
     /**
-     * add field to the form before specified field
+     * Add field before another field
      *
-     * @param $name
+     * @param string  $name         Name of the field before which new field is added
+     * @param string  $fieldName    Field name which will be added
+     * @param string  $type
+     * @param array   $options
+     * @param boolean $modify
      * @return $this
      */
-    public function addBefore($beforeField,$name, $type = 'text', array $options = [], $modify = false)
+    public function addBefore($name, $fieldName, $type = 'text', $options = [], $modify = false)
     {
-        if( ! $this->has($beforeField) ){
-            throw new \InvalidArgumentException('Field ['.$beforeField.'] does not exist in '.get_class($this));
-        }
+        $field = $this->getField($name);
+        $offset = array_search($name, array_keys($this->fields));
 
-        // put beforeField on temporary variable
-        $tmp = $this->fields[$beforeField];
+        $beforeFields = array_slice($this->fields, 0, $offset);
+        $afterFields = array_slice($this->fields, $offset);
 
-        $keys = array_keys($this->fields);
-        $beforeIdx = array_search($beforeField, $keys);
+        $this->fields = $beforeFields;
 
-        // slice first part of array excluding beforeField
-        $fieldsStart = array_slice( $this->fields, 0 , $beforeIdx );      
+        $this->add($fieldName, $type, $options, $modify);
 
-        // slice end part of array including beforeField
-        $fieldsEnd = array_slice($this->fields, $beforeIdx); 
+        $this->fields += $afterFields;
 
-        // assign first part        
-        $this->fields = $fieldsStart;
-
-        // adding new field
-        $this->add($name,$type,$options,$modify);
-
-        // join them
-        $this->fields += $fieldsEnd;
-        
         return $this;
     }
 
     /**
-     * add field to the form after specified field
-     *
-     * @param $name
+     * Add field before another field
+     * @param string  $name         Name of the field after which new field is added
+     * @param string  $fieldName    Field name which will be added
+     * @param string  $type
+     * @param array   $options
+     * @param boolean $modify
      * @return $this
      */
-    public function addAfter($afterField,$name, $type = 'text', array $options = [], $modify = false)
+    public function addAfter($name, $fieldName, $type = 'text', $options = [], $modify = false)
     {
-        if( ! $this->has($afterField) ){
-            throw new \InvalidArgumentException('Field ['.$afterField.'] does not exist in '.get_class($this));
-        }
-        
-        // put beforeField on temporary variable
-        $tmp = $this->fields[$afterField];
+        $field = $this->getField($name);
+        $offset = array_search($name, array_keys($this->fields));
 
-        $keys = array_keys($this->fields);
-        $afterIdx = array_search($afterField, $keys);
+        $beforeFields = array_slice($this->fields, 0, $offset + 1);
+        $afterFields = array_slice($this->fields, $offset + 1);
 
-        // slice first part of array excluding afterField
-        $fieldsStart = array_slice( $this->fields, 0 , $afterIdx + 1 );      
-        
-        // slice end part of array including afterField
-        $fieldsEnd = array_slice($this->fields, $afterIdx); 
+        $this->fields = $beforeFields;
 
-        // assign first part        
-        $this->fields = $fieldsStart;
+        $this->add($fieldName, $type, $options, $modify);
 
-        // adding new field
-        $this->add($name,$type,$options,$modify);
-
-        // join them
-        $this->fields += $fieldsEnd;
+        $this->fields += $afterFields;
 
         return $this;
     }
@@ -775,7 +756,6 @@ class Form
      * undocumented function
      *
      * @return void
-     * @author 
      **/
     public function exclude(array $fields)
     {
